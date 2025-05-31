@@ -9,7 +9,11 @@ uploaded_file=st.file_uploader("選擇檔案",type=["csv"])
 
 if uploaded_file is not None:
     df=pd.read_csv(uploaded_file)
-    st.success("讀取成功")
-    st.weite(df)
+    if df.empty:
+       st.error("檔案內沒內容，重新上傳")
+    else:
+       st.success("讀取成功")
+       st.write(df)
 else:
     st.info("上傳CSV檔")
+
