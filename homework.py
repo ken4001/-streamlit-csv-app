@@ -66,8 +66,8 @@ if uploaded_file is not None:
 
     if len(numeric_cols) >= 2:
         num_cluster = st.slider("選擇分群數量", 2, 6, 3)
+        df_clean = df[numeric_cols].dropna().copy()
         kmeans = KMeans(n_clusters=num_cluster, random_state=42)
-        df_clean = df[numeric_cols].dropna()
         df_clean["Cluster"] = kmeans.fit_predict(df_clean)
 
         st.markdown("### 🔹 KMeans 分群圖（前三欄）")
@@ -79,7 +79,20 @@ if uploaded_file is not None:
         components = pca.fit_transform(df_clean[numeric_cols])
         df_pca = pd.DataFrame(components, columns=["PC1", "PC2"])
         df_pca["Cluster"] = df_clean["Cluster"]
-        fig2 = px.scatter(df_pca, x="PC1", y="PC2", color="Cluster", title="PCA 主成分視覺化")
+
+        # 將原始欄位（如編號）加入 tooltip
+        tooltip_data = df.loc[df_clean.index].copy()
+        for col in tooltip_data.columns:
+            df_pca[col] = tooltip_data[col].values
+
+        fig2 = px.scatter(
+            df_pca,
+            x="PC1",
+            y="PC2",
+            color="Cluster",
+            title="PCA 主成分視覺化",
+            hover_data=["編號", "類別", "銷售額", "利潤", "數量"]
+        )
         st.plotly_chart(fig2)
 else:
     st.info("請先上傳一個 CSV 檔案以開始分析")
